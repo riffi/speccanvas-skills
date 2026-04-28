@@ -11,10 +11,10 @@ Agent Skills repository for working with Spec Canvas UI Spec and Data Spec files
 Install for Codex with the skills CLI:
 
 ```powershell
-npx skills add https://github.com/<owner>/speccanvas-skills --skill speccanvas -a codex -g
+npx skills add https://github.com/riffi/speccanvas-skills --skill speccanvas -a codex -g
 ```
 
-After publishing, replace `<owner>` with the GitHub owner.
+The published repository is available at https://github.com/riffi/speccanvas-skills.
 
 ## Validate
 
@@ -32,9 +32,8 @@ gh skill publish --dry-run
 
 ## Publish
 
-Create a public GitHub repository and publish a versioned release:
+This repository is already public. To publish a new version, commit the changes and create a versioned release:
 
 ```powershell
-gh repo create <owner>/speccanvas-skills --public --source . --push
 gh skill publish --tag v1.0.0
 ```
