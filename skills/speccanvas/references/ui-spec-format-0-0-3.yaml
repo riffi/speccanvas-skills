@@ -1,0 +1,203 @@
+# ============================================================================
+# UI SPECIFICATION v0.0.3 - LOCAL AUTHORING GUIDE
+# ============================================================================
+# This file describes the CURRENT ui-spec subset supported by the local
+# speccanvas skill schema and validator.
+#
+# Important:
+# - Use this file as the writing guide.
+# - Validate against schemas/ui-spec.schema.json and scripts/validate-spec.mjs.
+# - If upstream Spec Canvas expands the format, update this file and the schema
+#   together.
+# ============================================================================
+
+docType: ui-spec
+format_version: string
+
+metadata:
+  name: string
+  description: string              # Required: application purpose and main functionality
+  version: string                  # Optional document version
+  theme: string                    # Optional visual theme
+  background: string               # Optional background description
+  palette: object                  # Optional semantic palette
+  breakpoints: object              # Optional custom breakpoints: mobile/tablet/desktop
+
+templates:
+  template_id:
+    purpose: string
+    regions:
+      - id: string
+        type: string               # static | content | floating
+        position: string           # left|right|top|bottom|center or floating positions
+        fullHeight: boolean
+        fixed: boolean
+        purpose: string
+        blocks:
+          - id: string
+            type: string           # main_navigation | logo | user_profile | custom
+            purpose: string
+
+default_template: string
+
+navigation:
+  items:
+    - id: string
+      label: string
+      target: string
+
+screen_groups:
+  - id: string
+    screens: [string]
+
+screens:
+  screen_id:
+    title: string
+    purpose: string
+    template: string | object
+    container_max_width: string
+    blocks:
+      - id: string
+        columns: integer | object  # integer 1..12 or object with default/mobile/tablet/desktop
+        visible: string | array | object
+        purpose: string
+        blocks: []                 # Recursive nested screen blocks are supported
+
+# ============================================================================
+# AUTHORING NOTES
+# ============================================================================
+
+notes:
+  metadata:
+    - "metadata.name is required"
+    - "metadata.description is supported and should carry the top-level product intent"
+    - "Use screen purpose fields to carry most product intent"
+  screens:
+    - "screens is required"
+    - "screen.title and screen.purpose are required"
+    - "screen.blocks is optional at exploration stage"
+    - "screen.template accepts either a string template_id or an object with default/mobile/tablet/desktop"
+    - "screen.container_max_width must match CSS-like values such as 800px, 100%, 90vw"
+  blocks:
+    - "block.id and block.purpose are required"
+    - "block.columns accepts an integer or an adaptive object with default/mobile/tablet/desktop"
+    - "block.visible supports string, array, or object with show/hide"
+  responsive:
+    - "metadata.breakpoints is supported for custom named breakpoint ranges"
+    - "adaptive template objects are supported"
+    - "adaptive columns objects are supported"
+
+# ============================================================================
+# VALIDATION SUMMARY
+# ============================================================================
+
+validation:
+  schema_level:
+    - "Unknown properties are rejected in many places"
+    - "template static/floating regions must contain at least 1 block"
+  custom_rules:
+    - "template must contain exactly one content region"
+    - "content region must not contain blocks"
+    - "default_template must reference an existing template"
+    - "screen.template must reference an existing template"
+    - "navigation.items[].target must reference an existing screen"
+    - "screen_groups[].screens[] must reference existing screens"
+    - "screen_groups[].id should be unique"
+    - "screen should not appear in multiple screen groups"
+    - "template block ids should be unique within their region"
+    - "screen block ids should be unique within the whole screen, including nested blocks"
+    - "floating regions must use floating positions"
+    - "static/content regions must use regular positions"
+    - "fixed=true on non-static region produces a warning"
+    - "navigation without any template block type=main_navigation produces a warning"
+    - "grid rows whose columns total less than 12 produce warnings"
+
+# ============================================================================
+# MINIMAL VALID EXAMPLE
+# ============================================================================
+
+example_minimal:
+  docType: ui-spec
+  format_version: "0.0.3"
+  metadata:
+    name: notes_app
+    description: "Personal notes application with rich text editing and flexible layouts."
+  screens:
+    dashboard:
+      title: "Dashboard"
+      purpose: "Overview screen with quick access to recent notes and key actions."
+
+# ============================================================================
+# FULLER EXAMPLE
+# ============================================================================
+
+example_structured:
+  docType: ui-spec
+  format_version: "0.0.3"
+  metadata:
+    name: notes_app
+    description: "Personal notes application with rich text editing, folder organization, and search."
+    version: "1.0.0"
+    theme: "modern minimal"
+    background: "soft neutral background for long-form work"
+    palette:
+      primary: "soft blue"
+      accent: "warm orange"
+    breakpoints:
+      mobile: "< 640px"
+      tablet: "640px - 1279px"
+      desktop: ">= 1280px"
+  templates:
+    workspace:
+      purpose: "Shared workspace layout with content area and bottom navigation."
+      regions:
+        - id: content
+          type: content
+          position: top
+          purpose: "Main screen content."
+        - id: bottom_nav
+          type: static
+          position: bottom
+          fixed: true
+          purpose: "Bottom navigation tabs."
+          blocks:
+            - id: main_navigation
+              type: main_navigation
+              purpose: "Primary navigation across the app."
+  default_template: workspace
+  navigation:
+    items:
+      - id: nav_dashboard
+        label: "Dashboard"
+        target: dashboard
+      - id: nav_notes
+        label: "Notes"
+        target: notes
+  screens:
+    dashboard:
+      title: "Dashboard"
+      purpose: "Overview screen with recent notes, actions, and status counters."
+      blocks:
+        - id: hero
+          columns: 12
+          purpose: "Top summary card with recent activity and create-note action."
+    notes:
+      title: "Notes"
+      purpose: "List screen for browsing, filtering, and opening notes."
+      template:
+        default: workspace
+        mobile: workspace
+      container_max_width: 1200px
+      blocks:
+        - id: toolbar
+          columns:
+            default: 12
+            mobile: 12
+          purpose: "Toolbar with search, filters, and create-note action."
+        - id: notes_grid
+          columns:
+            default: 12
+            tablet: 12
+          visible:
+            show: [mobile, tablet, desktop]
+          purpose: "Grid of note cards with title, preview, and quick actions."

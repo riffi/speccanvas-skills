@@ -1,0 +1,150 @@
+---
+name: speccanvas
+description: Work with Spec Canvas specifications using the original Spec Canvas format files plus local schema validation. Use when Codex needs to create, revise, audit, explain, or hand off a Spec Canvas UI Spec or Data Spec; turn a rough product idea into YAML; reconstruct a spec from code, screenshots, or notes; or validate a spec against the Spec Canvas JSON schemas and custom validation rules from the local Spec Canvas project.
+---
+
+# Speccanvas
+
+Use this skill to produce and maintain Spec Canvas artifacts as portable YAML specs.
+
+Treat the spec as the source of truth for structure and intent. Favor compact, reusable specs that can be pasted into Spec Canvas, an IDE, a terminal agent, or a repository without extra explanation.
+
+Use the format-description YAML files in this skill as the writing guide. Use the bundled JSON Schema copies in this skill plus the local validation logic as the post-check.
+
+## Default File Placement
+
+Unless the user explicitly asks for a different location, create and update Spec Canvas files in the project root under `spec/`.
+
+- UI Spec path: `spec/ui-spec.yaml`
+- Data Spec path: `spec/data-spec.yaml`
+
+If the `spec/` directory does not exist, create it. When only one artifact is requested, create only the relevant file.
+
+## Workflow
+
+1. Identify the artifact boundary.
+Determine whether the task needs:
+- UI Spec only
+- Data Spec only
+- both specs
+- explanation, review, cleanup, or validation of an existing spec
+
+2. Gather source material.
+Use only the inputs that define structure:
+- product idea or feature request
+- existing screenshots or UI descriptions
+- codebase structure
+- current YAML spec
+- entity lists, API notes, or domain rules
+
+3. Read the original Spec Canvas format file.
+- For UI Spec authoring, read [references/ui-spec-format-0-0-3.yaml](./references/ui-spec-format-0-0-3.yaml).
+- For Data Spec authoring, read [references/data-spec-format-0-0-1.yaml](./references/data-spec-format-0-0-1.yaml).
+- For local validation behavior and review heuristics, read [references/workflow.md](./references/workflow.md), [references/validation-rules-ui.md](./references/validation-rules-ui.md), and [references/validation-rules-data.md](./references/validation-rules-data.md) as needed.
+- The current bundled schemas live at [schemas/ui-spec.schema.json](./schemas/ui-spec.schema.json) and [schemas/data-spec.schema.json](./schemas/data-spec.schema.json).
+
+4. Draft or revise the spec.
+Keep the document valid YAML and stay inside the format fields. Do not invent custom top-level sections unless the format explicitly allows them.
+
+5. Validate the result.
+If [scripts/validate-spec.mjs](./scripts/validate-spec.mjs) is available, run it against the final YAML before returning the result. Fix validation errors before returning the spec.
+
+6. Return the result.
+Return validated YAML or, for review tasks, return the issues first and the corrected snippet or file after that.
+
+## Core Rules
+
+### Use the format file as the writing source
+
+The format-description YAML files are the primary authoring reference for this skill. Follow their structure, field naming, examples, and guidance first. For UI Spec, `references/ui-spec-format-0-0-3.yaml` is the current local truth source and is expected to stay aligned with the bundled schema and validator.
+
+### Use schema validation as a post-check
+
+Schema validation is not the writing guide. It is the final verification step.
+
+- Write the spec from the format file.
+- Validate the written spec with `scripts/validate-spec.mjs`.
+- Fix schema and validation-rule failures before returning the final YAML.
+
+The bundled schemas in `schemas/` should stay synchronized with the Spec Canvas implementation and with the format-description references in this skill. If they appear to differ, treat that as a skill bug and call it out explicitly instead of silently inventing a compromise.
+
+### Keep UI and data aligned
+
+When both specs exist:
+- match naming between screens, entities, and actions
+- ensure UI actions imply real entities or workflows
+- ensure Data Spec relations support the UI structure
+- flag gaps instead of silently inventing backend concepts
+
+### Keep the format portable
+
+Produce plain YAML files that can live in a repo and be reused by any agent. Do not make the spec depend on Spec Canvas UI state, hidden metadata, or chat-only assumptions.
+
+## Task Patterns
+
+### Create a new UI Spec
+
+- Start with `docType`, `format_version`, and `metadata`.
+- In UI Spec, `metadata.description` is required and should carry the top-level product intent.
+- Add `screens` as soon as the main app shape is known.
+- Add `blocks` when the user wants visible structure; `blocks` may be omitted at exploration stage.
+- Add `templates`, `navigation`, or responsive fields only when they materially help.
+- UI responsive authoring supported by the current local format includes `metadata.breakpoints`, adaptive `screen.template`, adaptive `block.columns`, and `block.visible`.
+- Preserve the original format-file conventions, including quoting guidance from the UI format file.
+- Validate the completed file with `scripts/validate-spec.mjs` when available.
+
+### Create a new Data Spec
+
+- Describe the logical domain model, not the physical database.
+- Add `enums` only when shared controlled vocabularies matter.
+- Define `entities` with business-meaningful `fields`.
+- Use `relations` for logical cross-entity structure.
+- Avoid leaking implementation-only concerns like indexes, migrations, or ORM-specific syntax unless the user explicitly asks for them outside the spec.
+- Validate the completed file with `scripts/validate-spec.mjs` when available.
+
+### Review or repair an existing spec
+
+Check for:
+- invalid or unsupported fields
+- missing required sections
+- broken screen, template, or navigation references
+- enum, foreign key, or relation errors in Data Spec
+- custom validation failures surfaced by the local validation rules
+- schema-format mismatches between the original format file and the current local implementation
+
+When repairing, preserve the original product intent and make the smallest correction that restores clarity.
+
+### Reconstruct a spec from an existing app
+
+- infer screens from visible workflows
+- infer blocks from repeated regions and user tasks
+- infer entities from domain nouns and state changes
+- separate what is observed from what is guessed
+- call out uncertainty explicitly when the source material is incomplete
+
+## Validation
+
+Use [scripts/validate-spec.mjs](./scripts/validate-spec.mjs) when available.
+
+- Input: path to a YAML spec file
+- Detect document type from `docType`
+- Validate against the bundled JSON Schema from this skill
+- Run the relevant custom validation rules
+- Treat warnings as advisory
+- Treat errors as blockers to final output when you are returning a corrected spec
+
+If the script cannot run because the local Spec Canvas dependencies are missing, say so briefly and fall back to manual review using the format file plus the validation-rules references.
+
+## Output Expectations
+
+When returning specs:
+- provide valid YAML
+- keep IDs in snake_case where the format expects them
+- keep field names exactly as defined by the format file
+- mention assumptions when they materially affect structure
+- mention whether validation was run
+
+When returning a review instead of a rewritten file:
+- list structural issues first
+- then give concrete fixes
+- then provide a corrected snippet or full spec if useful

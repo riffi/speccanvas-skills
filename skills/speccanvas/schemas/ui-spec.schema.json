@@ -1,0 +1,500 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/schemas/ui-spec-2.0.json",
+  "title": "UI Specification v2.0",
+  "description": "JSON Schema для валидации UI Specification v2.0 - упрощенного формата описания структуры пользовательских интерфейсов с фокусом на компоновку и назначение блоков",
+  "type": "object",
+  "required": ["format_version", "metadata", "screens"],
+  "additionalProperties": false,
+  "properties": {
+    "docType": {
+      "type": "string",
+      "enum": ["ui-spec"],
+      "description": "Тип документа"
+    },
+    "format_version": {
+      "type": "string",
+      "description": "Версия формата спецификации (например: 0.0.2)",
+      "minLength": 1,
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Минимальная метаинформация о UI",
+      "required": ["name", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Название UI спецификации",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "description": "Краткое описание приложения и его назначения",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "description": "Версия документа"
+        },
+        "theme": {
+          "type": "string",
+          "description": "Общая визуальная тема приложения (например: glassmorphism, minimal, modern, brutalist, material)"
+        },
+        "background": {
+          "type": "string",
+          "description": "Описание фона приложения (свободный текст)"
+        },
+        "palette": {
+          "type": "object",
+          "description": "Цветовая палитра - гибкая структура ключ-значение для определения переиспользуемых цветов. Каждый ключ - имя цвета, значение - описание цвета. Ссылки в purpose: palette.имя_цвета",
+          "patternProperties": {
+            "^[a-zA-Z][a-zA-Z0-9_-]*$": {
+              "type": "string",
+              "description": "Описание цвета",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "breakpoints": {
+          "$ref": "#/definitions/breakpoints"
+        }
+      }
+    },
+    "navigation": {
+      "type": "object",
+      "description": "Структура навигации (только содержимое меню)",
+      "required": ["items"],
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "description": "Пункты навигации",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/navigationItem"
+          }
+        }
+      }
+    },
+    "screen_groups": {
+      "type": "array",
+      "description": "Группировка экранов для удобной навигации",
+      "items": {
+        "$ref": "#/definitions/screenGroup"
+      }
+    },
+    "templates": {
+      "type": "object",
+      "description": "Шаблоны страниц (template_id: template)",
+      "patternProperties": {
+        "^[a-z][a-z0-9_]*$": {
+          "$ref": "#/definitions/template"
+        }
+      },
+      "additionalProperties": false
+    },
+    "default_template": {
+      "type": "string",
+      "description": "ID шаблона по умолчанию",
+      "minLength": 1
+    },
+    "screens": {
+      "type": "object",
+      "description": "Определения экранов (screen_id: screen)",
+      "minProperties": 1,
+      "patternProperties": {
+        "^[a-z][a-z0-9_]*$": {
+          "$ref": "#/definitions/screen"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "definitions": {
+    "breakpointName": {
+      "type": "string",
+      "enum": ["mobile", "tablet", "desktop"]
+    },
+    "breakpoints": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mobile": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tablet": {
+          "type": "string",
+          "minLength": 1
+        },
+        "desktop": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "templateRefObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["default"],
+      "properties": {
+        "default": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mobile": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tablet": {
+          "type": "string",
+          "minLength": 1
+        },
+        "desktop": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "templateRef": {
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Ссылка на template ID",
+          "minLength": 1
+        },
+        {
+          "$ref": "#/definitions/templateRefObject"
+        }
+      ]
+    },
+    "columnsObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["default"],
+      "properties": {
+        "default": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12
+        },
+        "mobile": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12
+        },
+        "tablet": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12
+        },
+        "desktop": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12
+        }
+      }
+    },
+    "columnsValue": {
+      "oneOf": [
+        {
+          "type": "integer",
+          "description": "Ширина блока в колонках (1-12) для grid layouts",
+          "minimum": 1,
+          "maximum": 12,
+          "default": 12
+        },
+        {
+          "$ref": "#/definitions/columnsObject"
+        }
+      ]
+    },
+    "visibleObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "show": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/breakpointName"
+          }
+        },
+        "hide": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/breakpointName"
+          }
+        }
+      },
+      "anyOf": [
+        { "required": ["show"] },
+        { "required": ["hide"] }
+      ]
+    },
+    "visibleValue": {
+      "oneOf": [
+        {
+          "$ref": "#/definitions/breakpointName"
+        },
+        {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/breakpointName"
+          }
+        },
+        {
+          "$ref": "#/definitions/visibleObject"
+        }
+      ]
+    },
+    "navigationItem": {
+      "type": "object",
+      "description": "Элемент навигации",
+      "required": ["id", "label", "target"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Уникальный идентификатор пункта навигации",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "description": "Текст пункта навигации",
+          "minLength": 1
+        },
+        "target": {
+          "type": "string",
+          "description": "ID целевого экрана (screen_id)",
+          "minLength": 1
+        }
+      }
+    },
+    "screenGroup": {
+      "type": "object",
+      "description": "Группа экранов",
+      "required": ["id", "screens"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "ID группы (отображается как заголовок)",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "minLength": 1
+        },
+        "screens": {
+          "type": "array",
+          "description": "Список screen_id в группе",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "screen": {
+      "type": "object",
+      "description": "Определение экрана",
+      "required": ["title", "purpose"],
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Заголовок экрана",
+          "minLength": 1
+        },
+        "purpose": {
+          "type": "string",
+          "description": "Общее назначение экрана - текстовое описание",
+          "minLength": 10
+        },
+        "template": {
+          "$ref": "#/definitions/templateRef"
+        },
+        "container_max_width": {
+          "type": "string",
+          "description": "Максимальная ширина контейнера экрана (например: 800px, 1200px, 100%)",
+          "pattern": "^\\d+(px|%|rem|em|vw)$"
+        },
+        "blocks": {
+          "type": "array",
+          "description": "Блоки экрана",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/block"
+          }
+        }
+      }
+    },
+    "block": {
+      "type": "object",
+      "description": "Блок - базовый строительный элемент экрана",
+      "required": ["id", "purpose"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Уникальный идентификатор блока в рамках экрана",
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "columns": {
+          "$ref": "#/definitions/columnsValue"
+        },
+        "visible": {
+          "$ref": "#/definitions/visibleValue"
+        },
+        "purpose": {
+          "type": "string",
+          "description": "КЛЮЧЕВОЕ ПОЛЕ - детальное текстовое описание назначения блока. Агент на основе этого текста генерирует UI. Описывайте: какие элементы, какие данные, какие действия, обязательность полей, ссылки и переходы.",
+          "minLength": 0
+        },
+        "blocks": {
+          "type": "array",
+          "description": "Вложенные дочерние блоки",
+          "items": {
+            "$ref": "#/definitions/block"
+          }
+        }
+      }
+    },
+    "templateBlockType": {
+      "type": "string",
+      "description": "Тип блока шаблона",
+      "enum": [
+        "main_navigation",
+        "logo",
+        "user_profile",
+        "custom"
+      ]
+    },
+    "templateBlock": {
+      "type": "object",
+      "description": "Блок шаблона (аналогично блоку экрана)",
+      "required": ["id", "purpose"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Уникальный ID блока в рамках региона",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "type": {
+          "$ref": "#/definitions/templateBlockType"
+        },
+        "purpose": {
+          "type": "string",
+          "description": "Описание назначения блока",
+          "minLength": 0
+        }
+      }
+    },
+    "templateRegionType": {
+      "type": "string",
+      "description": "Тип региона шаблона",
+      "enum": ["static", "content", "floating"]
+    },
+    "templateRegion": {
+      "type": "object",
+      "description": "Регион шаблона",
+      "required": ["id", "type", "position"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Уникальный ID региона",
+          "minLength": 1
+        },
+        "type": {
+          "$ref": "#/definitions/templateRegionType"
+        },
+        "position": {
+          "type": "string",
+          "enum": ["left", "right", "top", "bottom", "center", "top-left", "top-right", "bottom-left", "bottom-right"],
+          "description": "Региональные позиции. Точное соответствие type проверяется дополнительной логикой валидации."
+        },
+        "purpose": {
+          "type": "string",
+          "description": "Описание назначения региона"
+        },
+        "blocks": {
+          "type": "array",
+          "description": "Блоки региона (для type: static и floating)",
+          "items": {
+            "$ref": "#/definitions/templateBlock"
+          }
+        },
+        "fullHeight": {
+          "type": "boolean",
+          "description": "Регион занимает всю высоту (для left/right позиций)",
+          "default": false
+        },
+        "fixed": {
+          "type": "boolean",
+          "description": "Fixed positioning для static регионов (sticky/fixed)",
+          "default": false
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": { "const": "static" }
+            }
+          },
+          "then": {
+            "required": ["id", "type", "position", "blocks"],
+            "properties": {
+              "blocks": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": { "const": "floating" }
+            }
+          },
+          "then": {
+            "required": ["id", "type", "position", "blocks"],
+            "properties": {
+              "blocks": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "template": {
+      "type": "object",
+      "description": "Шаблон страницы",
+      "required": ["purpose", "regions"],
+      "additionalProperties": false,
+      "properties": {
+        "purpose": {
+          "type": "string",
+          "description": "Общее описание шаблона",
+          "minLength": 0
+        },
+        "regions": {
+          "type": "array",
+          "description": "Регионы шаблона",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/templateRegion"
+          }
+        }
+      }
+    }
+  }
+}
