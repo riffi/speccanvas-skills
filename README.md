@@ -40,11 +40,13 @@ The `speccanvas` skill gives Codex a repeatable workflow for creating and mainta
 
 ## Install
 
-Install for Codex with the skills CLI:
+Install globally for Codex and Hermes Agent with the skills CLI:
 
 ```powershell
-npx skills add https://github.com/riffi/speccanvas-skills --skill speccanvas -a codex -g
+npx skills add https://github.com/riffi/speccanvas-skills --skill speccanvas -a codex -a hermes-agent -g
 ```
+
+Use `hermes-agent` as the Skills CLI agent name for Hermes; `hermes` is not a valid target.
 
 The published repository is available at https://github.com/riffi/speccanvas-skills.
 

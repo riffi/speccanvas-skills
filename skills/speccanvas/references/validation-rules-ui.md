@@ -38,3 +38,15 @@ Primary implementation sources:
 - Floating regions must use floating positions.
 - Static and content regions must use regular positions.
 - Grid rows with incomplete `columns` totals are warnings.
+
+
+## Human review heuristics
+
+These checks are not enforced by the schema, but reviewers and agents should apply them before treating a UI Spec as good handoff context.
+
+- `purpose` fields should describe user-facing intent, not CSS or component implementation.
+- Screen and block descriptions should stay compact enough to be scanned quickly by another agent.
+- Exact spacing, pixel sizes, font sizes, Tailwind/CSS classes, decorative colors, shadows, border radius, and icon choices usually do not belong in the spec.
+- Animation timings, debounce timings, crossfade seconds, toast positions, loading-spinner mechanics, console logging, and platform workarounds should stay in implementation notes unless they define a core product capability.
+- Local text/copy edits belong in the spec only when they change product meaning or terminology.
+- Cosmetic/layout micro-changes should be implemented in code without changing the UI Spec.

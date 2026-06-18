@@ -11,6 +11,45 @@ Treat the spec as the source of truth for structure and intent. Favor compact, r
 
 Use the format-description YAML files in this skill as the writing guide. Use the bundled JSON Schema copies in this skill plus the local validation logic as the post-check.
 
+## Core Philosophy
+
+Spec Canvas specs are a compact bridge between product intent and implementation. They should help agents and humans agree on the shape of the product before code changes, but they should not become a running log of every CSS, layout, or component tweak.
+
+- **UI Spec describes intent and structure.** Capture screens, major blocks, navigation, key user tasks, important states, and meaningful responsive structure.
+- **Data Spec describes the logical domain.** Capture entities, fields, enums, relationships, and domain constraints; avoid physical database or framework details.
+- **Spec-first applies to semantic changes.** Update specs before implementation when the request changes product meaning, user journeys, or domain structure.
+- **Implementation micro-changes can skip the spec.** If the request is cosmetic, layout-only, or invisible to users, change the implementation directly and leave the spec untouched.
+- **Compact specs are better specs.** Prefer short purpose statements that explain why a screen/block exists over implementation prose about how it is built.
+
+## Granularity Gate
+
+Before editing a UI Spec, decide whether the requested change is semantic enough to belong in the spec.
+
+Update the UI Spec when the request changes:
+
+- screens, screen groups, or major blocks;
+- user journeys, navigation, entry points, or available actions;
+- important user-facing states, modes, permissions, or empty/error/recovery flows;
+- the purpose or behavior of a major component;
+- meaningful responsive structure, such as distinct desktop/mobile experiences;
+- product terminology or labels when their meaning changes;
+- boundaries between public, admin, editor, player, onboarding, or similar product areas.
+
+Do **not** update the UI Spec for implementation micro-tweaks:
+
+- spacing: padding, margin, gap, line-height;
+- exact sizes: pixel values, font-size, width/height unless they express high-level layout intent;
+- CSS classes, Tailwind classes, component names, file names, or framework-specific structure;
+- exact colors, gradients, shadows, border-radius, icons, or decorative styling;
+- local alignment, ordering, wrapping, or cosmetic reflow inside an already-described block;
+- animation timings, debounce timings, crossfade seconds, toast positions, loading-spinner mechanics;
+- browser/platform implementation details unless they are a core user-facing capability;
+- local copy edits that do not change meaning;
+- refactors that are invisible to users.
+
+If the user asks for a cosmetic or layout micro-change, do the code change directly and explicitly avoid touching the UI Spec.
+
+
 ## Default File Placement
 
 Unless the user explicitly asks for a different location, create and update Spec Canvas files in the project root under `spec/`.
@@ -28,8 +67,12 @@ Determine whether the task needs:
 - Data Spec only
 - both specs
 - explanation, review, cleanup, or validation of an existing spec
+- no spec change at all because the request is an implementation micro-tweak
 
-2. Gather source material.
+2. Apply the granularity gate.
+For UI work, decide whether the request changes product intent/structure or only implementation details. If it is only a micro-tweak, leave the spec alone.
+
+3. Gather source material.
 Use only the inputs that define structure:
 - product idea or feature request
 - existing screenshots or UI descriptions
@@ -37,19 +80,19 @@ Use only the inputs that define structure:
 - current YAML spec
 - entity lists, API notes, or domain rules
 
-3. Read the original Spec Canvas format file.
+4. Read the original Spec Canvas format file.
 - For UI Spec authoring, read [references/ui-spec-format-0-0-3.yaml](./references/ui-spec-format-0-0-3.yaml).
 - For Data Spec authoring, read [references/data-spec-format-0-0-1.yaml](./references/data-spec-format-0-0-1.yaml).
 - For local validation behavior and review heuristics, read [references/workflow.md](./references/workflow.md), [references/validation-rules-ui.md](./references/validation-rules-ui.md), and [references/validation-rules-data.md](./references/validation-rules-data.md) as needed.
 - The current bundled schemas live at [schemas/ui-spec.schema.json](./schemas/ui-spec.schema.json) and [schemas/data-spec.schema.json](./schemas/data-spec.schema.json).
 
-4. Draft or revise the spec.
-Keep the document valid YAML and stay inside the format fields. Do not invent custom top-level sections unless the format explicitly allows them.
+5. Draft or revise the spec.
+Keep the document valid YAML and stay inside the format fields. Do not invent custom top-level sections unless the format explicitly allows them. Make the smallest semantic update that preserves intent; do not expand the spec with pixel-level implementation notes.
 
-5. Validate the result.
+6. Validate the result.
 If [scripts/validate-spec.mjs](./scripts/validate-spec.mjs) is available, run it against the final YAML before returning the result. Fix validation errors before returning the spec.
 
-6. Return the result.
+7. Return the result.
 Return validated YAML or, for review tasks, return the issues first and the corrected snippet or file after that.
 
 ## Core Rules
@@ -79,6 +122,10 @@ When both specs exist:
 ### Keep the format portable
 
 Produce plain YAML files that can live in a repo and be reused by any agent. Do not make the spec depend on Spec Canvas UI state, hidden metadata, or chat-only assumptions.
+
+### Keep UI Spec above implementation detail
+
+Do not use UI Spec as a replacement for CSS, component docs, or changelogs. A good `purpose` explains what the screen or block is for from the user's point of view. It should not enumerate exact spacing, class names, pixel sizes, transient implementation mechanics, or every small control if those details do not change the product meaning.
 
 ## Task Patterns
 
@@ -111,8 +158,18 @@ Check for:
 - enum, foreign key, or relation errors in Data Spec
 - custom validation failures surfaced by the local validation rules
 - schema-format mismatches between the original format file and the current local implementation
+- over-detailed UI `purpose` text that describes implementation mechanics instead of product intent
 
 When repairing, preserve the original product intent and make the smallest correction that restores clarity.
+
+### Compact an over-detailed UI Spec
+
+- Keep existing screen, template, region, and block IDs stable unless the product structure truly changes.
+- Replace long `purpose` paragraphs with one-sentence summaries of user-facing intent.
+- Preserve screens, major blocks, navigation, important states, and meaningful modes.
+- Remove CSS/layout microdetails, platform quirks, exact timings, logging behavior, and component-internal mechanics.
+- Avoid whole-file YAML reformatting; use targeted edits so diffs stay reviewable.
+- Validate after editing.
 
 ### Reconstruct a spec from an existing app
 
