@@ -33,10 +33,11 @@ The `speccanvas` skill gives Codex a repeatable workflow for creating and mainta
 - Review and repair specs against bundled format references and JSON Schemas.
 - Validate specs locally with the included validation script.
 - Prepare specs as reusable handoff context for AI agents and developers.
+- Persist projects, specs, revisions, and screen implementations through a configured SpecCanvas MCP server.
 
 ## Skills
 
-- `speccanvas`: create, revise, audit, explain, hand off, and validate Spec Canvas YAML specs using bundled format references, schemas, and validation logic.
+- `speccanvas`: create, revise, audit, explain, hand off, validate, and persist Spec Canvas specs and implementations using bundled format references, schemas, validation logic, and optional MCP tools.
 
 ## Install
 
@@ -49,6 +50,19 @@ npx skills add https://github.com/riffi/speccanvas-skills --skill speccanvas -a 
 Use `hermes-agent` as the Skills CLI agent name for Hermes; `hermes` is not a valid target.
 
 The published repository is available at https://github.com/riffi/speccanvas-skills.
+
+## Optional MCP configuration
+
+The skill does not store MCP URLs or secrets. Configure the `speccanvas` MCP server in each agent environment.
+
+Example Codex local configuration:
+
+```powershell
+$env:SPECCANVAS_MCP_TOKEN = "<token with mcp scope>"
+codex mcp add speccanvas --url http://localhost:3000/mcp --bearer-token-env-var SPECCANVAS_MCP_TOKEN
+```
+
+Use the same skill for local, staging, and production. Only the agent MCP config and token environment change.
 
 ## Validate
 

@@ -1,11 +1,11 @@
 ---
 name: speccanvas
-description: Work with Spec Canvas specifications using the original Spec Canvas format files plus local schema validation. Use when Codex needs to create, revise, audit, explain, or hand off a Spec Canvas UI Spec or Data Spec; turn a rough product idea into YAML; reconstruct a spec from code, screenshots, or notes; or validate a spec against the Spec Canvas JSON schemas and custom validation rules from the local Spec Canvas project.
+description: Work with Spec Canvas specifications and SpecCanvas MCP servers using the original Spec Canvas format files plus local schema validation. Use when Codex needs to create, revise, audit, explain, hand off, or persist a Spec Canvas UI Spec, Data Spec, revision, or screen implementation; turn a rough product idea into YAML; reconstruct a spec from code, screenshots, or notes; validate specs against bundled schemas; or use a configured speccanvas MCP server.
 ---
 
 # Speccanvas
 
-Use this skill to produce and maintain Spec Canvas artifacts as portable YAML specs.
+Use this skill to produce and maintain Spec Canvas artifacts as portable YAML specs or to persist them through a configured SpecCanvas MCP server.
 
 Treat the spec as the source of truth for structure and intent. Favor compact, reusable specs that can be pasted into Spec Canvas, an IDE, a terminal agent, or a repository without extra explanation.
 
@@ -59,6 +59,16 @@ Unless the user explicitly asks for a different location, create and update Spec
 
 If the `spec/` directory does not exist, create it. When only one artifact is requested, create only the relevant file.
 
+## MCP Mode
+
+Use the configured MCP server named `speccanvas` when the user asks to work with a live SpecCanvas project, document, revision, implementation, archive, or when MCP tools are clearly available in the environment.
+
+- If MCP is available, read [references/mcp-workflow.md](./references/mcp-workflow.md) before creating or updating live SpecCanvas data.
+- If the task creates or updates a UI Spec, also read [references/ui-spec-workflow.md](./references/ui-spec-workflow.md).
+- If the task creates a screen implementation, also read [references/implementation-workflow.md](./references/implementation-workflow.md).
+- If MCP is not available, do not invent connection details. Work with portable YAML files or ask the user to configure the `speccanvas` MCP server.
+- Do not store MCP URLs, bearer tokens, staging hosts, or local secrets in this skill. Those belong in the agent's MCP configuration and environment variables.
+
 ## Workflow
 
 1. Identify the artifact boundary.
@@ -68,6 +78,7 @@ Determine whether the task needs:
 - both specs
 - explanation, review, cleanup, or validation of an existing spec
 - no spec change at all because the request is an implementation micro-tweak
+- live MCP persistence for projects, specs, revisions, implementations, or archives
 
 2. Apply the granularity gate.
 For UI work, decide whether the request changes product intent/structure or only implementation details. If it is only a micro-tweak, leave the spec alone.
@@ -80,7 +91,10 @@ Use only the inputs that define structure:
 - current YAML spec
 - entity lists, API notes, or domain rules
 
-4. Read the original Spec Canvas format file.
+4. Read the required workflow and format references.
+- For UI Spec creation or revision, read [references/ui-spec-workflow.md](./references/ui-spec-workflow.md).
+- For screen implementation creation, read [references/implementation-workflow.md](./references/implementation-workflow.md).
+- For live MCP persistence, read [references/mcp-workflow.md](./references/mcp-workflow.md).
 - For UI Spec authoring, read [references/ui-spec-format-0-0-3.yaml](./references/ui-spec-format-0-0-3.yaml).
 - For Data Spec authoring, read [references/data-spec-format-0-0-1.yaml](./references/data-spec-format-0-0-1.yaml).
 - For local validation behavior and review heuristics, read [references/workflow.md](./references/workflow.md), [references/validation-rules-ui.md](./references/validation-rules-ui.md), and [references/validation-rules-data.md](./references/validation-rules-data.md) as needed.

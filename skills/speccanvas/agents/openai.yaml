@@ -1,4 +1,4 @@
 interface:
   display_name: "Spec Canvas"
-  short_description: "Draft, audit, and refine specs"
-  default_prompt: "Use $speccanvas to create or revise a Spec Canvas UI Spec or Data Spec from docs.speccanvas.dev."
+  short_description: "Draft specs and use SpecCanvas MCP"
+  default_prompt: "Use $speccanvas to create, validate, or persist a Spec Canvas UI Spec, Data Spec, or implementation."
