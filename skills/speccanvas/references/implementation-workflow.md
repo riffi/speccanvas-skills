@@ -7,7 +7,7 @@ Use this reference when creating or storing a screen implementation for a Spec C
 1. Read the relevant UI Spec screen and its important blocks.
 2. Do not change the UI Spec for CSS-only or layout-only tweaks.
 3. If the implementation changes product intent, update or create the UI Spec first.
-4. If using MCP, read [mcp-workflow.md](./mcp-workflow.md) and resolve agent identity before saving.
+4. If using MCP, read [mcp-workflow.md](./mcp-workflow.md) and resolve model identity before saving when the active model is known.
 
 ## HTML Implementation Rules
 
@@ -21,9 +21,10 @@ Use this reference when creating or storing a screen implementation for a Spec C
 
 ## MCP Persistence Rules
 
-- Use `resolve_agent_identity` before `add_implementation` when identity is known from `AGENTS.md`, environment, or the calling agent profile.
-- Pass stable identity data through `agentIdentity` or pass the resolved `agentIdentityId`.
-- Prefer stable `identityKey` plus `modelRef`; do not rely on remembering UUIDs between sessions.
+- Use `resolve_model_identity` before `add_implementation` when a separate `modelId` is useful, or pass `modelIdentity` directly to `add_implementation`.
+- Pass stable model identity data as `{ identityKey, provider, model, version }`.
+- Prefer stable `identityKey` plus provider/model/version; do not rely on remembering UUIDs between sessions.
+- Do not invent new model identities. If the active model is unknown or not registered in the global agent rules, ask the user before saving an agent-authored implementation.
 - If `revisionId` is unknown, omit it. The SpecCanvas backend attaches the implementation to the latest UI Spec revision or creates the initial revision.
-- Manual or legacy flows may use `agentName` only. CLI/MCP agents should use stable agent identity.
+- Manual or legacy flows may use `agentName` only. CLI/MCP agents should use stable model identity whenever available.
 - Save only HTML that is complete enough to preview.
