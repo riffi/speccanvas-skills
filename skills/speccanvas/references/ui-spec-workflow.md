@@ -15,6 +15,17 @@ Treat UI Spec as the source of product intent and visible structure, not as CSS,
 5. Keep IDs stable and use snake_case where the format expects identifiers.
 6. Validate the finished YAML with `scripts/validate-spec.mjs` when working with files.
 
+## Copy/Paste Output Contract
+
+When the user asks to generate a paste-ready UI Spec, output exactly one Markdown `yaml` block and no surrounding prose.
+
+Use valid YAML:
+- 2 spaces per indentation level
+- no tabs
+- no single-line collapsed objects
+- field names exactly as defined by the format reference
+- stable snake_case identifiers where the format expects IDs
+
 ## Granularity Gate
 
 Update the UI Spec when the request changes:

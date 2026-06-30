@@ -65,6 +65,7 @@ Use the configured MCP server named `speccanvas` when the user asks to work with
 
 - If MCP is available, read [references/mcp-workflow.md](./references/mcp-workflow.md) before creating or updating live SpecCanvas data.
 - If the task creates or updates a UI Spec, also read [references/ui-spec-workflow.md](./references/ui-spec-workflow.md).
+- If the task mentions L0, L1, L2, L3, control level, exploration, structure, behavior, or implementation-ready UI Spec depth, also read [references/progressive-precision.md](./references/progressive-precision.md).
 - If the task creates a screen implementation, also read [references/implementation-workflow.md](./references/implementation-workflow.md).
 - If MCP is not available, do not invent connection details. Work with portable YAML files or ask the user to configure the `speccanvas` MCP server.
 - Do not store MCP URLs, bearer tokens, staging hosts, or local secrets in this skill. Those belong in the agent's MCP configuration and environment variables.
@@ -102,6 +103,7 @@ Use only the inputs that define structure:
 
 4. Read the required workflow and format references.
 - For UI Spec creation or revision, read [references/ui-spec-workflow.md](./references/ui-spec-workflow.md).
+- For UI Spec precision levels L0-L3, read [references/progressive-precision.md](./references/progressive-precision.md).
 - For screen implementation creation, read [references/implementation-workflow.md](./references/implementation-workflow.md).
 - For live MCP persistence, read [references/mcp-workflow.md](./references/mcp-workflow.md).
 - For UI Spec authoring, read [references/ui-spec-format-0-0-3.yaml](./references/ui-spec-format-0-0-3.yaml).
@@ -159,6 +161,7 @@ Do not use UI Spec as a replacement for CSS, component docs, or changelogs. A go
 - Add `screens` as soon as the main app shape is known.
 - Add `blocks` when the user wants visible structure; `blocks` may be omitted at exploration stage.
 - Add `templates`, `navigation`, or responsive fields only when they materially help.
+- If the user asks for L0, L1, L2, L3, a control level, exploration, structure, behavior, or implementation-ready depth, apply [references/progressive-precision.md](./references/progressive-precision.md).
 - UI responsive authoring supported by the current local format includes `metadata.breakpoints`, adaptive `screen.template`, adaptive `block.columns`, and `block.visible`.
 - Preserve the original format-file conventions, including quoting guidance from the UI format file.
 - Validate the completed file with `scripts/validate-spec.mjs` when available.
