@@ -2,6 +2,22 @@
 
 Use this reference when a configured MCP server named `speccanvas` is available.
 
+## Intent Routing
+
+Treat these phrases as live MCP intent:
+- `SpecCanvas MCP`
+- `live SpecCanvas`
+- `MCP Speccanvas`
+- `Speccanvas server`
+- `in Speccanvas`
+- `в Speccanvas`
+- `на MCP сервере Speccanvas`
+- `создай проект в Speccanvas`
+
+When the user uses live MCP intent, operate on the configured MCP server. Do not create local `spec/`, `docs/spec/`, app, or repository files unless the user explicitly asks for a file export or local copy.
+
+If the user asks to "create a project in Speccanvas", first create or find the live MCP project, then create the requested UI Spec/Data Spec document or revision through MCP. Return the created project/document identifiers and a concise summary.
+
 ## Connection Boundary
 
 This skill does not contain connection details. Configure the MCP server outside the skill.

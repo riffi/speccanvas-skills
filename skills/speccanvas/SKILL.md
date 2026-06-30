@@ -1,6 +1,6 @@
 ---
 name: speccanvas
-description: Work with Spec Canvas specifications and SpecCanvas MCP servers using the original Spec Canvas format files plus local schema validation. Use when Codex needs to create, revise, audit, explain, hand off, or persist a Spec Canvas UI Spec, Data Spec, revision, or screen implementation; turn a rough product idea into YAML; reconstruct a spec from code, screenshots, or notes; validate specs against bundled schemas; or use a configured speccanvas MCP server.
+description: Work with Spec Canvas specifications and SpecCanvas MCP servers using the original Spec Canvas format files plus local schema validation. Use when Codex needs to create, revise, audit, explain, hand off, or persist a Spec Canvas UI Spec, Data Spec, revision, or screen implementation; turn a rough product idea into YAML; reconstruct a spec from code, screenshots, or notes; validate specs against bundled schemas; or use a configured speccanvas MCP server. Treat "SpecCanvas MCP", "live SpecCanvas", "MCP Speccanvas", "in Speccanvas", "create a project in Speccanvas", and similar phrases as requests to use the live speccanvas MCP server instead of creating local files.
 ---
 
 # Speccanvas
@@ -63,6 +63,8 @@ If the `spec/` directory does not exist, create it. When only one artifact is re
 
 Use the configured MCP server named `speccanvas` when the user asks to work with a live SpecCanvas project, document, revision, implementation, archive, or when MCP tools are clearly available in the environment.
 
+- **Live MCP intent words:** `SpecCanvas MCP`, `live SpecCanvas`, `MCP Speccanvas`, `Speccanvas server`, `in Speccanvas`, `на MCP сервере Speccanvas`, `в Speccanvas`, `создай проект в Speccanvas`.
+- If the user asks to create, list, inspect, update, or save a project "in Speccanvas" or "through SpecCanvas MCP", use MCP tools. Do not create local `spec/`, `docs/spec/`, or repository files unless the user explicitly asks for file output.
 - If MCP is available, read [references/mcp-workflow.md](./references/mcp-workflow.md) before creating or updating live SpecCanvas data.
 - If the task creates or updates a UI Spec, also read [references/ui-spec-workflow.md](./references/ui-spec-workflow.md).
 - If the task mentions L0, L1, L2, L3, control level, exploration, structure, behavior, or implementation-ready UI Spec depth, also read [references/progressive-precision.md](./references/progressive-precision.md).
@@ -90,6 +92,8 @@ Determine whether the task needs:
 - no spec change at all because the request is an implementation micro-tweak
 - live MCP persistence for projects, specs, revisions, implementations, or archives
 
+If the user says "in Speccanvas", "SpecCanvas MCP", or "live SpecCanvas", classify the task as live MCP persistence first. File output is secondary and only happens when explicitly requested.
+
 2. Apply the granularity gate.
 For UI work, decide whether the request changes product intent/structure or only implementation details. If it is only a micro-tweak, leave the spec alone.
 
@@ -102,6 +106,7 @@ Use only the inputs that define structure:
 - entity lists, API notes, or domain rules
 
 4. Read the required workflow and format references.
+- For live MCP project/document/revision/implementation work, read [references/mcp-workflow.md](./references/mcp-workflow.md) before deciding on local files.
 - For UI Spec creation or revision, read [references/ui-spec-workflow.md](./references/ui-spec-workflow.md).
 - For UI Spec precision levels L0-L3, read [references/progressive-precision.md](./references/progressive-precision.md).
 - For screen implementation creation, read [references/implementation-workflow.md](./references/implementation-workflow.md).

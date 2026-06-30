@@ -1,4 +1,4 @@
 interface:
   display_name: "Spec Canvas"
-  short_description: "Draft specs and use SpecCanvas MCP"
-  default_prompt: "Use $speccanvas to create, validate, or persist a Spec Canvas UI Spec, Data Spec, or implementation."
+  short_description: "Draft specs and use live SpecCanvas MCP"
+  default_prompt: "Use $speccanvas to create, validate, or persist a Spec Canvas UI Spec, Data Spec, implementation, or live SpecCanvas MCP project."
