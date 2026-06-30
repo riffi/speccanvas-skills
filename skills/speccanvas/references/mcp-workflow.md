@@ -49,6 +49,43 @@ When MCP is available:
 - Create implementation: resolve model identity, then call `add_implementation` with `modelIdentity`.
 - Export handoff archive: use export tools after project/spec/implementation data is complete.
 
+## Uploading Local Spec Files
+
+When the user asks to upload existing local YAML specs, prefer the bundled helper script instead of hand-writing one-off JSON-RPC scripts or passing very large document objects directly through the chat tool call surface.
+
+Use the helper when:
+- the source already exists as `docs/spec/ui-spec.yaml`, `docs/spec/data-spec.yaml`, `spec/ui-spec.yaml`, `spec/data-spec.yaml`, or another local YAML path;
+- the spec is large enough that a direct tool call would bloat the transcript;
+- both UI Spec and Data Spec should be uploaded together;
+- the workflow should create the initial UI Spec revision and set `viewRevisionId`.
+
+Example:
+
+```powershell
+$env:SPECCANVAS_MCP_URL = "https://<host>/mcp"
+$env:SPECCANVAS_MCP_TOKEN = "<token with mcp scope>"
+node <skill-root>\scripts\upload-spec.mjs `
+  --project-name mavolyra `
+  --project-description "Mavolyra project" `
+  --ui docs/spec/ui-spec.yaml `
+  --ui-name "Mavolyra UI Spec" `
+  --data docs/spec/data-spec.yaml `
+  --data-name "Mavolyra Data Spec"
+```
+
+The helper:
+- validates each file with `scripts/validate-spec.mjs` unless `--skip-validation` is passed;
+- parses YAML using the local Spec Canvas dependency set;
+- finds or creates the project by exact name, or uses `--project-id`;
+- uploads UI/Data documents through MCP;
+- creates a UI Spec revision for each uploaded UI Spec;
+- updates the UI document with the full document and the new `viewRevisionId`;
+- prints only project/document/revision identifiers and file paths.
+
+Default behavior is `--mode upsert`: if a document with the same `docType` and name already exists in the project, the helper updates it instead of creating a duplicate. Use `--mode create` when a new document is required even if a same-named document exists.
+
+Do not commit MCP endpoints or bearer tokens to the skill or project repo. Pass them via `SPECCANVAS_MCP_URL`, `SPECCANVAS_MCP_TOKEN`, `--endpoint`, or `--token`.
+
 ## Model Identity
 
 Resolve model identity before saving an agent-authored implementation. The current SpecCanvas MCP contract uses the compact model identity shape:

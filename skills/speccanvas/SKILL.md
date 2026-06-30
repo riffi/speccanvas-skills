@@ -66,6 +66,7 @@ Use the configured MCP server named `speccanvas` when the user asks to work with
 - **Live MCP intent words:** `SpecCanvas MCP`, `live SpecCanvas`, `MCP Speccanvas`, `Speccanvas server`, `in Speccanvas`, `на MCP сервере Speccanvas`, `в Speccanvas`, `создай проект в Speccanvas`.
 - If the user asks to create, list, inspect, update, or save a project "in Speccanvas" or "through SpecCanvas MCP", use MCP tools. Do not create local `spec/`, `docs/spec/`, or repository files unless the user explicitly asks for file output.
 - If MCP is available, read [references/mcp-workflow.md](./references/mcp-workflow.md) before creating or updating live SpecCanvas data.
+- If the task uploads existing local `*.yaml` Spec Canvas files to a live MCP server, prefer [scripts/upload-spec.mjs](./scripts/upload-spec.mjs) instead of writing ad-hoc JSON-RPC upload scripts or pasting large documents into direct tool calls.
 - If the task creates or updates a UI Spec, also read [references/ui-spec-workflow.md](./references/ui-spec-workflow.md).
 - If the task mentions L0, L1, L2, L3, control level, exploration, structure, behavior, or implementation-ready UI Spec depth, also read [references/progressive-precision.md](./references/progressive-precision.md).
 - If the task creates a screen implementation, also read [references/implementation-workflow.md](./references/implementation-workflow.md).
@@ -124,6 +125,8 @@ If [scripts/validate-spec.mjs](./scripts/validate-spec.mjs) is available, run it
 
 7. Return the result.
 Return validated YAML or, for review tasks, return the issues first and the corrected snippet or file after that.
+
+For live MCP persistence of existing local YAML files, use `scripts/upload-spec.mjs` after validation. The helper reads local UI/Data Spec YAML, validates it, parses it to JSON, creates or finds the live project, uploads documents, creates a UI revision, and sets the UI document `viewRevisionId`. Do not hand-roll one-off upload scripts unless the helper cannot run in the current environment.
 
 ## Core Rules
 

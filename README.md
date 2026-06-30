@@ -32,6 +32,7 @@ The `speccanvas` skill gives Codex a repeatable workflow for creating and mainta
 - Keep UI and data models aligned before implementation starts.
 - Review and repair specs against bundled format references and JSON Schemas.
 - Validate specs locally with the included validation script.
+- Upload local UI/Data Spec YAML files to a configured SpecCanvas MCP server with the included upload helper.
 - Prepare specs as reusable handoff context for AI agents and developers.
 - Persist projects, specs, revisions, and screen implementations through a configured SpecCanvas MCP server.
 
@@ -63,6 +64,21 @@ codex mcp add speccanvas --url http://localhost:3000/mcp --bearer-token-env-var 
 ```
 
 Use the same skill for local, staging, and production. Only the agent MCP config and token environment change.
+
+## Upload local specs through MCP
+
+For existing local YAML files, use the bundled helper instead of hand-writing JSON-RPC upload scripts:
+
+```powershell
+$env:SPECCANVAS_MCP_URL = "https://<host>/mcp"
+$env:SPECCANVAS_MCP_TOKEN = "<token with mcp scope>"
+node <skill-root>\scripts\upload-spec.mjs `
+  --project-name mavolyra `
+  --ui docs/spec/ui-spec.yaml `
+  --data docs/spec/data-spec.yaml
+```
+
+The helper validates files, creates or finds the project, uploads UI/Data documents, creates an initial UI revision, and sets the UI document `viewRevisionId`. Use `--help` for the full option list.
 
 ## Validate
 
