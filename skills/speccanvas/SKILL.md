@@ -126,7 +126,7 @@ If [scripts/validate-spec.mjs](./scripts/validate-spec.mjs) is available, run it
 7. Return the result.
 Return validated YAML or, for review tasks, return the issues first and the corrected snippet or file after that.
 
-For live MCP persistence of existing local YAML files, use `scripts/upload-spec.mjs` after validation. The helper reads local UI/Data Spec YAML, validates it, parses it to JSON, creates or finds the live project, uploads documents, creates a UI revision, and sets the UI document `viewRevisionId`. Do not hand-roll one-off upload scripts unless the helper cannot run in the current environment.
+For live MCP persistence of existing local YAML files, use `scripts/upload-spec.mjs`. The helper reads local UI/Data Spec YAML as text and calls the server-side `upload_spec_file` MCP tool, which parses, validates, creates or finds the live project, creates or upserts the document, creates a UI revision, and sets the UI document `viewRevisionId`. Do not hand-roll one-off upload scripts unless the helper cannot run in the current environment.
 
 ## Core Rules
 

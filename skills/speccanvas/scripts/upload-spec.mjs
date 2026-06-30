@@ -3,7 +3,6 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { spawnSync } from 'node:child_process'
-import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -19,10 +18,10 @@ function parseArgs(argv) {
     projectId: undefined,
     projectName: undefined,
     revisionDescription: undefined,
-    skipValidation: false,
     specCanvasRoot: undefined,
     token: undefined,
     tokenEnv: 'SPECCANVAS_MCP_TOKEN',
+    validate: false,
     uiFiles: [],
   }
 
@@ -68,7 +67,7 @@ function parseArgs(argv) {
         args.revisionDescription = readValue()
         break
       case '--skip-validation':
-        args.skipValidation = true
+        args.validate = false
         break
       case '--spec-canvas-root':
         args.specCanvasRoot = readValue()
@@ -86,6 +85,9 @@ function parseArgs(argv) {
         if (args.uiFiles.length === 0) throw new Error('--ui-name must follow --ui')
         args.uiFiles[args.uiFiles.length - 1].name = readValue()
         break
+      case '--validate':
+        args.validate = true
+        break
       case '--help':
       case '-h':
         printUsage()
@@ -101,6 +103,10 @@ function parseArgs(argv) {
 
   if (!args.projectId && !args.projectName) {
     throw new Error('Pass --project-name/--project or --project-id')
+  }
+
+  if (args.projectId && args.projectName) {
+    throw new Error('Pass either --project-id or --project-name, not both')
   }
 
   if (args.uiFiles.length === 0 && args.dataFiles.length === 0) {
@@ -127,79 +133,23 @@ Options:
   --data-name NAME            Document name for the preceding --data file.
   --mode create|upsert        create always creates documents; upsert updates same docType+name. Default: upsert.
   --revision-description TEXT Description for created UI Spec revisions.
-  --spec-canvas-root PATH     Local Spec Canvas repo root used for YAML parser and validation dependencies.
-  --skip-validation           Parse and upload without running validate-spec.mjs.
-  --dry-run                   Validate and print planned operations without calling MCP.`)
-}
-
-async function pathExists(targetPath) {
-  try {
-    await fs.access(targetPath)
-    return true
-  } catch {
-    return false
-  }
-}
-
-async function findSpecCanvasRoot(startDir) {
-  let currentDir = startDir
-
-  while (true) {
-    const siblingCandidate = path.join(currentDir, 'spec-canvas')
-    if (await pathExists(path.join(siblingCandidate, 'spec-canvas-ui'))) {
-      return siblingCandidate
-    }
-
-    const parentDir = path.dirname(currentDir)
-    if (parentDir === currentDir) {
-      return undefined
-    }
-
-    currentDir = parentDir
-  }
-}
-
-async function resolveSpecCanvasRoot(explicitRoot) {
-  const candidates = [
-    explicitRoot,
-    process.env.SPEC_CANVAS_ROOT,
-    path.resolve(process.cwd(), 'spec-canvas'),
-    path.resolve(process.cwd(), '..', 'spec-canvas'),
-    path.resolve(process.cwd(), '..', '..', 'spec-canvas'),
-    path.resolve(__dirname, '../../../../spec-canvas'),
-  ].filter(Boolean)
-
-  for (const candidate of candidates) {
-    if (await pathExists(path.join(candidate, 'spec-canvas-ui'))) {
-      return candidate
-    }
-  }
-
-  const discovered = await findSpecCanvasRoot(process.cwd())
-  if (discovered) {
-    return discovered
-  }
-
-  throw new Error('Spec Canvas repo not found. Pass --spec-canvas-root or set SPEC_CANVAS_ROOT.')
-}
-
-function getPackageRequire(specCanvasRoot) {
-  return createRequire(path.join(specCanvasRoot, 'spec-canvas-ui', 'package.json'))
-}
-
-function normalizeYamlExport(mod) {
-  return mod?.default ?? mod
+  --validate                  Run local validate-spec.mjs before upload. Server validation always runs on upload.
+  --spec-canvas-root PATH     Optional local Spec Canvas repo root for --validate only.
+  --skip-validation           Backward-compatible no-op; local validation is off by default.
+  --dry-run                   Print planned operations without calling MCP.`)
 }
 
 function runValidation(filePath, specCanvasRoot) {
-  const result = spawnSync(
-    process.execPath,
-    [path.join(__dirname, 'validate-spec.mjs'), '--spec-canvas-root', specCanvasRoot, filePath],
-    {
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'pipe'],
-    }
-  )
+  const validationArgs = [path.join(__dirname, 'validate-spec.mjs')]
+  if (specCanvasRoot) {
+    validationArgs.push('--spec-canvas-root', specCanvasRoot)
+  }
+  validationArgs.push(filePath)
+
+  const result = spawnSync(process.execPath, validationArgs, {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
 
   if (result.stdout.trim()) {
     console.log(result.stdout.trim())
@@ -210,22 +160,6 @@ function runValidation(filePath, specCanvasRoot) {
   if (result.status !== 0) {
     throw new Error(`Validation failed for ${filePath}`)
   }
-}
-
-async function loadYamlFile(yamlModule, filePath) {
-  const source = await fs.readFile(filePath, 'utf8')
-  const yamlDocument = yamlModule.parseDocument(source)
-
-  if (Array.isArray(yamlDocument.errors) && yamlDocument.errors.length > 0) {
-    throw new Error(yamlDocument.errors[0].message)
-  }
-
-  return yamlDocument.toJS()
-}
-
-function getDefaultDocumentName(doc, fallback) {
-  const metadataName = typeof doc?.metadata?.name === 'string' ? doc.metadata.name.trim() : ''
-  return metadataName || fallback
 }
 
 function parseMcpResponse(text, method) {
@@ -290,7 +224,7 @@ class McpClient {
       capabilities: {},
       clientInfo: {
         name: 'speccanvas-skill-upload-spec',
-        version: '0.1.0',
+        version: '0.2.0',
       },
     })
   }
@@ -303,84 +237,7 @@ class McpClient {
   }
 }
 
-async function resolveProject(client, args) {
-  if (args.projectId) {
-    const result = await client.callTool('get_project', { projectId: args.projectId })
-    return result.project
-  }
-
-  const result = await client.callTool('list_projects', {})
-  const existing = result.projects.find((project) => project.name === args.projectName)
-
-  if (existing) {
-    return existing
-  }
-
-  const created = await client.callTool('create_project', {
-    name: args.projectName,
-    description: args.projectDescription ?? null,
-  })
-  return created.project
-}
-
-function findExistingDocument(documents, docType, name) {
-  return documents.find((document) => document.docType === docType && document.name === name)
-}
-
-async function uploadDocument(client, project, item, docType, doc, args) {
-  const name = item.name ?? getDefaultDocumentName(
-    doc,
-    docType === 'ui-spec' ? 'UI Spec' : 'Data Spec'
-  )
-  const documentsResult = await client.callTool('list_documents', {
-    projectId: project.id,
-    docType,
-    includeDocument: false,
-  })
-  const existingDocument = args.mode === 'upsert'
-    ? findExistingDocument(documentsResult.documents, docType, name)
-    : undefined
-
-  if (existingDocument) {
-    const updated = await client.callTool('update_document', {
-      documentId: existingDocument.id,
-      name,
-      document: doc,
-    })
-    return { action: 'updated', document: updated.document }
-  }
-
-  const created = await client.callTool(
-    docType === 'ui-spec' ? 'create_ui_spec' : 'create_data_spec',
-    {
-      projectId: project.id,
-      name,
-      document: doc,
-    }
-  )
-  return { action: 'created', document: created.document }
-}
-
-async function createUiRevision(client, document, doc, filePath, args) {
-  const result = await client.callTool('create_revision', {
-    documentId: document.id,
-    revisionData: doc,
-    description: args.revisionDescription ?? `Uploaded from ${filePath}`,
-  })
-  const revision = result.revision
-
-  const updated = await client.callTool('update_document', {
-    documentId: document.id,
-    name: document.name,
-    document: doc,
-    viewRevisionId: revision.id,
-  })
-
-  return { document: updated.document, revision }
-}
-
-async function prepareDocuments(args, specCanvasRoot) {
-  const YAML = normalizeYamlExport(getPackageRequire(specCanvasRoot)('yaml'))
+async function prepareDocuments(args) {
   const files = [
     ...args.uiFiles.map((item) => ({ ...item, expectedDocType: 'ui-spec' })),
     ...args.dataFiles.map((item) => ({ ...item, expectedDocType: 'data-spec' })),
@@ -389,19 +246,32 @@ async function prepareDocuments(args, specCanvasRoot) {
 
   for (const item of files) {
     const filePath = path.resolve(item.file)
-    if (!args.skipValidation) {
-      runValidation(filePath, specCanvasRoot)
+    if (args.validate) {
+      runValidation(filePath, args.specCanvasRoot)
     }
 
-    const document = await loadYamlFile(YAML, filePath)
-    if (document?.docType !== item.expectedDocType) {
-      throw new Error(`${filePath} has docType '${document?.docType}', expected '${item.expectedDocType}'`)
-    }
-
-    prepared.push({ ...item, filePath, document })
+    prepared.push({
+      ...item,
+      contentText: await fs.readFile(filePath, 'utf8'),
+      filePath,
+    })
   }
 
   return prepared
+}
+
+async function uploadDocument(client, item, args) {
+  return client.callTool('upload_spec_file', {
+    projectId: args.projectId,
+    projectName: args.projectName,
+    projectDescription: args.projectDescription ?? null,
+    documentName: item.name,
+    fileName: item.filePath,
+    contentText: item.contentText,
+    expectedDocType: item.expectedDocType,
+    mode: args.mode,
+    revisionDescription: args.revisionDescription ?? undefined,
+  })
 }
 
 async function main() {
@@ -416,8 +286,7 @@ async function main() {
     throw new Error(`Bearer token is required. Pass --token or set ${args.tokenEnv}.`)
   }
 
-  const specCanvasRoot = await resolveSpecCanvasRoot(args.specCanvasRoot)
-  const documents = await prepareDocuments(args, specCanvasRoot)
+  const documents = await prepareDocuments(args)
 
   if (args.dryRun) {
     console.log(JSON.stringify({
@@ -426,10 +295,11 @@ async function main() {
       mode: args.mode,
       projectId: args.projectId,
       projectName: args.projectName,
+      localValidation: args.validate,
       documents: documents.map((item) => ({
         file: item.filePath,
         docType: item.expectedDocType,
-        name: item.name ?? getDefaultDocumentName(item.document, item.expectedDocType === 'ui-spec' ? 'UI Spec' : 'Data Spec'),
+        name: item.name ?? '<server resolves from metadata.name or file name>',
       })),
     }, null, 2))
     return
@@ -437,50 +307,29 @@ async function main() {
 
   const client = new McpClient(endpoint, token)
   await client.initialize()
-  const project = await resolveProject(client, args)
   const uploaded = []
+  let projectSummary
 
   for (const item of documents) {
-    const uploadResult = await uploadDocument(
-      client,
-      project,
-      item,
-      item.expectedDocType,
-      item.document,
-      args
-    )
-    let revision
-    let finalDocument = uploadResult.document
-
-    if (item.expectedDocType === 'ui-spec') {
-      const revisionResult = await createUiRevision(
-        client,
-        uploadResult.document,
-        item.document,
-        item.filePath,
-        args
-      )
-      finalDocument = revisionResult.document
-      revision = revisionResult.revision
+    const uploadResult = await uploadDocument(client, item, args)
+    projectSummary = {
+      id: uploadResult.project.id,
+      name: uploadResult.project.name,
     }
-
     uploaded.push({
       action: uploadResult.action,
-      docType: item.expectedDocType,
-      documentId: finalDocument.id,
+      docType: uploadResult.docType,
+      documentId: uploadResult.document.id,
       file: item.filePath,
-      name: finalDocument.name,
-      revisionId: revision?.id,
-      revisionVersion: revision?.version,
-      viewRevisionId: finalDocument.viewRevisionId,
+      name: uploadResult.document.name,
+      revisionId: uploadResult.revision?.id,
+      revisionVersion: uploadResult.revision?.version,
+      viewRevisionId: uploadResult.document.viewRevisionId,
     })
   }
 
   console.log(JSON.stringify({
-    project: {
-      id: project.id,
-      name: project.name,
-    },
+    project: projectSummary,
     uploaded,
   }, null, 2))
 }

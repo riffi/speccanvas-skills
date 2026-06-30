@@ -78,7 +78,7 @@ node <skill-root>\scripts\upload-spec.mjs `
   --data docs/spec/data-spec.yaml
 ```
 
-The helper validates files, creates or finds the project, uploads UI/Data documents, creates an initial UI revision, and sets the UI document `viewRevisionId`. Use `--help` for the full option list.
+The helper reads local YAML as text and calls the server-side `upload_spec_file` MCP tool. The server parses and validates the file, creates or finds the project, creates or upserts UI/Data documents, creates an initial UI revision, and sets the UI document `viewRevisionId`. Use `--help` for the full option list. Pass `--validate` when you also want the local `validate-spec.mjs` check before publishing.
 
 ## Validate
 

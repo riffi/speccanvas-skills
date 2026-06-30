@@ -74,15 +74,16 @@ node <skill-root>\scripts\upload-spec.mjs `
 ```
 
 The helper:
-- validates each file with `scripts/validate-spec.mjs` unless `--skip-validation` is passed;
-- parses YAML using the local Spec Canvas dependency set;
-- finds or creates the project by exact name, or uses `--project-id`;
-- uploads UI/Data documents through MCP;
-- creates a UI Spec revision for each uploaded UI Spec;
-- updates the UI document with the full document and the new `viewRevisionId`;
+- reads local YAML files as text without parsing them locally;
+- optionally validates each file with `scripts/validate-spec.mjs` when `--validate` is passed;
+- calls the server-side `upload_spec_file` MCP tool once per file;
+- lets the server parse YAML, validate the document, find or create the project, and create or upsert the document;
+- lets the server create a UI Spec revision for each uploaded UI Spec and set the new `viewRevisionId`;
 - prints only project/document/revision identifiers and file paths.
 
 Default behavior is `--mode upsert`: if a document with the same `docType` and name already exists in the project, the helper updates it instead of creating a duplicate. Use `--mode create` when a new document is required even if a same-named document exists.
+
+Local validation is intentionally separate from publishing. Use `scripts/validate-spec.mjs` during edit loops, and use `upload-spec.mjs` only when the user asks to publish or save files to the live MCP server. The server always validates again on upload, so the helper does not require a local `SPEC_CANVAS_ROOT` unless `--validate` is used.
 
 Do not commit MCP endpoints or bearer tokens to the skill or project repo. Pass them via `SPECCANVAS_MCP_URL`, `SPECCANVAS_MCP_TOKEN`, `--endpoint`, or `--token`.
 
