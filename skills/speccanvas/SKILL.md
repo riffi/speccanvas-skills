@@ -69,6 +69,15 @@ Use the configured MCP server named `speccanvas` when the user asks to work with
 - If MCP is not available, do not invent connection details. Work with portable YAML files or ask the user to configure the `speccanvas` MCP server.
 - Do not store MCP URLs, bearer tokens, staging hosts, or local secrets in this skill. Those belong in the agent's MCP configuration and environment variables.
 
+### MCP Model Identity Rule
+
+When saving an agent-authored screen implementation through MCP, always provide stable model identity as `{ identityKey, provider, model, version }`.
+
+- Resolve the active model from global agent rules, environment variables, or the current session before calling `add_implementation`.
+- For `add_implementation`, pass `modelIdentity` directly. Do not replace it with `agentName`.
+- `agentName` is only a manual/legacy fallback. Use it only with `modelIdentity: null` when the implementation is uploaded by a human or the model identity is intentionally unavailable.
+- If the active model is unknown, ambiguous, or not registered, stop and ask for clarification instead of silently saving with `agentName`.
+
 ## Workflow
 
 1. Identify the artifact boundary.
